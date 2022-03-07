@@ -15,32 +15,29 @@ class ChatServer:
             print(f"Server listening localhost on port {self._port}")
             s.bind(('', port))
             s.listen(1)
-            # continuously accept new connections until program termination
-            while True:
-                conn, addr = s.accept()
-                print(f"Connected by {addr}")
-                print()
-                self._begin_chat_socket(conn)
+            # accept only a single connection, terminate server when that connection terminates
+            conn, addr = s.accept()
+            print(f"Connected by {addr}", end="\n\n")
+            self._begin_chat(conn)
 
     @staticmethod
-    def _begin_chat(sock: socket):
+    def _begin_chat(sock: socket) -> None:
         # open the connection socket, close upon termination
         with sock:
             interface = MessagingInterface(sock)
-            # read and print the message
+            print("When prompted for a message, type /q to quit.")
             print("Waiting for message...")
-            print(interface.receive())
-            print("Enter message to send or type /q to quit:")
-            # get the first input
-            message = input(">")
-            while message != "/q":
-                # TODO - implement handling of connection closure by client
-                interface.send(message)
-                print(interface.receive())
-                message = input(">")
+            # continuously receive and reply until termination symbol is encountered
+            while interface.is_open():
+                received_msg = interface.receive()
+                if interface.is_open():
+                    print(received_msg)
+                    send_message = input(">")
+                    interface.send(send_message)
+            return
 
 
 if __name__ == '__main__':
-    port = 51119
+    port = 51125
     server = ChatServer(port)
     server.run()

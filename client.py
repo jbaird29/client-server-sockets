@@ -11,21 +11,25 @@ class ChatClient:
         self._server_host = server_host
 
     def run(self) -> None:
+        # open the connection socket, close upon termination
         with socket(AF_INET, SOCK_STREAM) as sock:
             sock.connect((self._server_host, self._server_port))
-            print("Connected to:", self._server_host, "on port:", self._server_port)
+            print("Connected to:", self._server_host.decode(), "on port:", self._server_port, end="\n\n")
             interface = MessagingInterface(sock)
-            print("Type /q to quit")
-            print("Enter message to send...")
-            message = input(">")
-            while message != "/q":
-                # TODO - implement handling of connection closure by client
-                interface.send(message)
-                print(interface.receive())
-                message = input(">")
+            # send the first message
+            print("Send a message, or type /q to quit.")
+            send_message = input(">")
+            interface.send(send_message)
+            # continuously receive and reply until termination symbol is encountered
+            while interface.is_open():
+                received_msg = interface.receive()
+                if interface.is_open():
+                    print(received_msg)
+                    send_message = input(">")
+                    interface.send(send_message)
 
 
 if __name__ == '__main__':
-    port = 51119
+    port = 51125
     client = ChatClient(port)
     client.run()
