@@ -27,7 +27,7 @@ class MessagingInterface:
         raw_message = bytearray()
         received_count = 0
         while received_count < length:
-            chunk_size = min(4096, length - received_count)  # TODO - test this with a small power of 2 (eg 8)
+            chunk_size = min(4096, length - received_count)
             chunk = self._sock.recv(chunk_size)
             raw_message.extend(chunk)
             received_count += len(chunk)
